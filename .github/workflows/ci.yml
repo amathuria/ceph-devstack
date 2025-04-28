@@ -1,8 +1,8 @@
 name: CI
 on:
-  pull_request:
+  push:
     branches:
-      - main
+      - '*'
   workflow_dispatch:
 
 jobs:
@@ -14,6 +14,8 @@ jobs:
         include:
           - os: ubuntu-24.04
             python: "3.12"
+    env:
+      TEUTHOLOGY_SUITE_EXTRA_ARGS: "-N 2"
     steps:
       - uses: actions/checkout@v2
       - name: Install packages
@@ -36,6 +38,26 @@ jobs:
         run: ./venv/bin/ceph-devstack -v start
       - name: Wait
         run: ./venv/bin/ceph-devstack wait teuthology
+      - name: Show logs (test parfait gsoc code)
+        run: ./venv/bin/ceph-devstack logs
+      - name: Show logs (test parfait gsoc code) locate log file
+        run: ./venv/bin/ceph-devstack logs --locate
+      - name: Show logs (test parfait gsoc code) invalid job ID
+        run: ./venv/bin/ceph-devstack logs -j 1
+      - name: Show logs (test parfait gsoc code) valid job ID
+        run: ./venv/bin/ceph-devstack logs -j 2
+      - name: Show logs (test parfait gsoc code) valid job ID
+        run: ./venv/bin/ceph-devstack logs -j 3
+      - name: Start (second run)
+        run: ./venv/bin/ceph-devstack -v start
+      - name: Wait (second run)
+        run: ./venv/bin/ceph-devstack wait teuthology
+      - name: Show logs (second run test parfait gsoc code)
+        run: ./venv/bin/ceph-devstack logs
+      - name: Show logs (second run test parfait gsoc code) locate log file
+        run: ./venv/bin/ceph-devstack logs --locate
+      - name: Show logs (second run test parfait gsoc code) valid job ID
+        run: ./venv/bin/ceph-devstack logs -j 6
       - name: Dump logs
         if: success() || failure()
         run: podman logs -f teuthology
